@@ -454,7 +454,10 @@ export function PageFormDialog({ open, onOpenChange, page = null }) {
                       onChange={(metaTitle) => setSeo((cur) => ({ ...cur, metaTitle }))}
                     >
                       <Label className="text-xs font-medium text-stone-700">Meta Title</Label>
-                      <Input placeholder="Custom browser tab and search title" />
+                      <Input
+                        placeholder="Custom browser tab and search title"
+                        className="w-full rounded-xl border border-stone-200/80 bg-white/70 px-3 py-2 text-sm text-ink placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 transition"
+                      />
                     </TextField>
 
                     <div>
@@ -464,7 +467,7 @@ export function PageFormDialog({ open, onOpenChange, page = null }) {
                         onChange={(e) => setSeo((cur) => ({ ...cur, metaDescription: e.target.value }))}
                         rows={2}
                         placeholder="Brief summary for search engine results..."
-                        className="w-full text-sm"
+                        className="w-full rounded-xl border border-stone-200/80 bg-white/70 px-3 py-2 text-sm text-ink placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 transition resize-none"
                       />
                     </div>
 
@@ -473,7 +476,10 @@ export function PageFormDialog({ open, onOpenChange, page = null }) {
                       onChange={(keywords) => setSeo((cur) => ({ ...cur, keywords }))}
                     >
                       <Label className="text-xs font-medium text-stone-700">Keywords</Label>
-                      <Input placeholder="construction, contractor, roofing, seattle" />
+                      <Input
+                        placeholder="construction, contractor, roofing, seattle"
+                        className="w-full rounded-xl border border-stone-200/80 bg-white/70 px-3 py-2 text-sm text-ink placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 transition"
+                      />
                     </TextField>
                   </div>
                 )}

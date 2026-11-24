@@ -6,7 +6,6 @@ import { AllPreview, previewRows } from "@/components/layout/AllPreview";
 import { useLandingSections } from "@/landing/queries";
 import { findSection, landingSections } from "@/landing/sections";
 import { useOffice } from "@/office";
-
 const icons = {
   header: PanelTop,
   hero: Image,
@@ -95,6 +94,13 @@ export function AppShell() {
               <Globe size={14} /> Pages
             </Button>
             <Button
+              variant="outline"
+              className="glass-btn-outline rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer"
+              onPress={() => navigate("/sections")}
+            >
+              <Layers size={14} /> Sections
+            </Button>
+            <Button
               variant="primary"
               className="glass-btn-primary rounded-full px-4 py-1.5 text-xs font-medium cursor-pointer"
               onPress={() => navigate("/sections/new")}
@@ -136,6 +142,15 @@ export function AppShell() {
             >
               <Globe size={14} />
               Pages
+            </NavLink>
+            <NavLink
+              to="/sections"
+              className={`glass-nav-tab flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
+                pathname === "/sections" ? "glass-nav-tab-active" : "glass-nav-tab-inactive"
+              }`}
+            >
+              <Layers size={14} />
+              Sections
             </NavLink>
             <span className="h-4 w-px bg-stone-300/40 mx-1 shrink-0" aria-hidden="true" />
             {nav.map((item) => {
