@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { isSectionSlug } from "@/landing/sections";
 import { LandingSectionPage } from "@/pages/LandingSectionPage";
 import { AddSectionPage } from "@/pages/AddSectionPage";
+import { PagesPage } from "@/pages/PagesPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { useOffice } from "@/office";
@@ -35,6 +36,7 @@ export default function App() {
           }
         >
           <Route index element={<Navigate to="/header" replace />} />
+          <Route path="pages" element={<PagesPage />} />
           <Route path="sections/new" element={<AddSectionPage />} />
           <Route path="header/edit" element={<LandingSectionPage sectionKey="header" mode="edit" />} />
           <Route path="projects/edit" element={<LandingSectionPage sectionKey="projects" mode="edit" />} />

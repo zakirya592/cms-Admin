@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@heroui/react";
 import { motion } from "framer-motion";
-import { BadgeCheck, HardHat, Image, Info, Layers, ListOrdered, LogOut, Megaphone, PanelBottom, PanelTop, Phone, Plus, Quote, Wrench } from "lucide-react";
+import { BadgeCheck, Globe, HardHat, Image, Info, Layers, ListOrdered, LogOut, Megaphone, PanelBottom, PanelTop, Phone, Plus, Quote, Wrench } from "lucide-react";
 import { AllPreview, previewRows } from "@/components/layout/AllPreview";
 import { useLandingSections } from "@/landing/queries";
 import { findSection, landingSections } from "@/landing/sections";
@@ -88,6 +88,13 @@ export function AppShell() {
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Button
+              variant="outline"
+              className="glass-btn-outline rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer"
+              onPress={() => navigate("/pages")}
+            >
+              <Globe size={14} /> Pages
+            </Button>
+            <Button
               variant="primary"
               className="glass-btn-primary rounded-full px-4 py-1.5 text-xs font-medium cursor-pointer"
               onPress={() => navigate("/sections/new")}
@@ -121,6 +128,16 @@ export function AppShell() {
         {/* Glass Tab Navigation Dock */}
         <div className="border-t border-white/40 px-3 py-1.5 md:px-7">
           <nav aria-label="Sections" className="section-tabs flex items-center gap-1.5 overflow-x-auto py-0.5">
+            <NavLink
+              to="/pages"
+              className={`glass-nav-tab flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
+                pathname === "/pages" ? "glass-nav-tab-active" : "glass-nav-tab-inactive"
+              }`}
+            >
+              <Globe size={14} />
+              Pages
+            </NavLink>
+            <span className="h-4 w-px bg-stone-300/40 mx-1 shrink-0" aria-hidden="true" />
             {nav.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.to || pathname.startsWith(`${item.to}/`);

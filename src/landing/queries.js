@@ -15,16 +15,54 @@ function assertOk(response, fallback) {
   return response.data;
 }
 
+function normalizeSection(item) {
+  if (!item || typeof item !== "object") return item;
+  const sectionKey =
+    item.sectionKey ||
+    item.type ||
+    item.settings?.legacySectionKey ||
+    (item.name ? item.name.toLowerCase().replace(/\s+/g, "-") : "");
+  return {
+    ...item,
+    sectionKey,
+    sectionName: item.sectionName || item.name || sectionKey,
+    isActive: item.status ? item.status === "active" : item.isActive !== false,
+  };
+}
+
 export function useLandingSections() {
   return useQuery({
     queryKey: landingKeys.all,
     queryFn: async () => {
-      const response = await newRequest.get("/api/landing-page");
-      const body = assertOk(response, "Could not load sections");
-      return body?.data ?? [];
+      try {
+        const response = await newRequest.get("/api/admin/section?limit=100");
+        const body = assertOk(response, "Could not load sections");
+        const rawItems = Array.isArray(body?.data?.items)
+          ? body.data.items
+          : Array.isArray(body?.data)
+            ? body.data
+            : [];
+        return rawItems.map(normalizeSection);
+      } catch {
+        // Fallback to /api/landing-page
+        try {
+          const fallbackRes = await newRequest.get("/api/landing-page");
+          const fallbackBody = assertOk(fallbackRes, "Could not load sections");
+          const rawItems = Array.isArray(fallbackBody?.data?.items)
+            ? fallbackBody.data.items
+            : Array.isArray(fallbackBody?.data)
+              ? fallbackBody.data
+              : [];
+          return rawItems.map(normalizeSection);
+        } catch {
+          return [];
+        }
+      }
     },
   });
 }
+
+export const useAdminSections = useLandingSections;
 
 export function useLandingSection(sectionKey, { enabled = true } = {}) {
   return useQuery({

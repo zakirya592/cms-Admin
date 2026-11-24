@@ -12,13 +12,30 @@ export function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [pending, setPending] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const passwordLengthError =
+    (password && password.length < 8) || (submitted && password.length < 8)
+      ? "Password must be at least 8 characters"
+      : "";
+
+  const passwordMatchError =
+    (confirmPassword && password !== confirmPassword) || (submitted && password !== confirmPassword)
+      ? "Passwords do not match"
+      : "";
 
   if (user) return <Navigate to="/" replace />;
 
   async function onSubmit(event) {
     event.preventDefault();
+    if (password.length < 8 || password !== confirmPassword) {
+      setSubmitted(true);
+      return;
+    }
     setPending(true);
     try {
       const result = await register(name, email, password);
@@ -48,25 +65,76 @@ export function RegisterPage() {
               <Label className="text-xs font-medium text-stone-700">Email</Label>
               <Input type="email" autoComplete="email" placeholder="name@company.com" />
             </TextField>
-            <TextField value={password} onChange={setPassword} isRequired minLength={8}>
-              <Label className="text-xs font-medium text-stone-700">Password</Label>
-              <InputGroup>
-                <InputGroup.Input type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} placeholder="At least 8 characters" />
-                <InputGroup.Suffix className="px-1.5">
-                  <Button
-                    isIconOnly
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    variant="ghost"
-                    size="sm"
-                    type="button"
-                    className="hover:bg-white/60 text-stone-600 rounded-lg"
-                    onPress={() => setShowPassword((visible) => !visible)}
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </Button>
-                </InputGroup.Suffix>
-              </InputGroup>
-            </TextField>
+            <div>
+              <TextField
+                value={password}
+                onChange={setPassword}
+                isRequired
+                minLength={8}
+                isInvalid={Boolean(passwordLengthError)}
+              >
+                <Label className="text-xs font-medium text-stone-700">Password</Label>
+                <InputGroup>
+                  <InputGroup.Input
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    minLength={8}
+                    placeholder="At least 8 characters"
+                  />
+                  <InputGroup.Suffix className="px-1.5">
+                    <Button
+                      isIconOnly
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      variant="ghost"
+                      size="sm"
+                      type="button"
+                      className="hover:bg-white/60 text-stone-600 rounded-lg"
+                      onPress={() => setShowPassword((visible) => !visible)}
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </Button>
+                  </InputGroup.Suffix>
+                </InputGroup>
+              </TextField>
+              {passwordLengthError ? (
+                <p className="mt-1 text-xs font-medium text-rose-600">{passwordLengthError}</p>
+              ) : null}
+            </div>
+            <div>
+              <TextField
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                isRequired
+                minLength={8}
+                isInvalid={Boolean(passwordMatchError)}
+              >
+                <Label className="text-xs font-medium text-stone-700">Confirm Password</Label>
+                <InputGroup>
+                  <InputGroup.Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    minLength={8}
+                    placeholder="Re-enter your password"
+                  />
+                  <InputGroup.Suffix className="px-1.5">
+                    <Button
+                      isIconOnly
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      variant="ghost"
+                      size="sm"
+                      type="button"
+                      className="hover:bg-white/60 text-stone-600 rounded-lg"
+                      onPress={() => setShowConfirmPassword((visible) => !visible)}
+                    >
+                      {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </Button>
+                  </InputGroup.Suffix>
+                </InputGroup>
+              </TextField>
+              {passwordMatchError ? (
+                <p className="mt-1 text-xs font-medium text-rose-600">{passwordMatchError}</p>
+              ) : null}
+            </div>
             <Button type="submit" variant="primary" className="glass-btn-primary rounded-xl py-2.5 font-medium mt-1 cursor-pointer" isPending={pending}>
               Create account
             </Button>
