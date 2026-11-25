@@ -1,49 +1,10 @@
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@heroui/react";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Button, Modal } from "@heroui/react";
 import { motion } from "framer-motion";
-import { BadgeCheck, Globe, HardHat, Image, Info, Layers, ListOrdered, LogOut, Megaphone, PanelBottom, PanelTop, Phone, Plus, Quote, Wrench } from "lucide-react";
-import { previewRows } from "@/components/layout/AllPreview";
-import { useLandingSections } from "@/landing/queries";
-import { findSection, landingSections } from "@/landing/sections";
+import { Globe, Layers, LogOut, Moon, Sun } from "lucide-react";
+import { getTheme, toggleTheme } from "@/theme";
 import { useOffice } from "@/office";
-const icons = {
-  header: PanelTop,
-  hero: Image,
-  about: Info,
-  services: Wrench,
-  projects: HardHat,
-  "why-us": BadgeCheck,
-  process: ListOrdered,
-  testimonials: Quote,
-  cta: Megaphone,
-  contact: Phone,
-  footer: PanelBottom,
-};
-
-function navItem(row) {
-  const section = findSection(row.sectionKey);
-  return {
-    to: section?.path || `/${row.sectionKey}`,
-    label: row.sectionName || section?.name || row.sectionKey,
-    icon: icons[row.sectionKey] || Layers,
-  };
-}
-
-function sectionNav(saved) {
-  const rows = Array.isArray(saved) ? saved : [];
-  const ordered = previewRows(rows);
-  const orderedKeys = new Set(ordered.map((row) => row.sectionKey));
-  const listed = ordered.map(navItem);
-  const rest = landingSections
-    .filter((section) => rows.some((row) => row.sectionKey === section.key) && !orderedKeys.has(section.key))
-    .map((section) => {
-      const row = rows.find((item) => item.sectionKey === section.key);
-      return navItem({ ...row, sectionKey: section.key, sectionName: row?.sectionName });
-    });
-  const footer = listed.filter((item) => item.to === "/footer");
-  const main = listed.filter((item) => item.to !== "/footer");
-  return [...main, ...rest, ...footer];
-}
 
 function initials(name) {
   const parts = String(name ?? "").trim().split(/\s+/).filter(Boolean);
@@ -53,10 +14,26 @@ function initials(name) {
 
 export function AppShell() {
   const { user, logout } = useOffice();
-  const saved = useLandingSections();
-  const nav = sectionNav(saved.data);
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [theme, setTheme] = useState(getTheme);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const isDark = theme === "dark";
+  const segBase = isDark
+    ? "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200"
+    : "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200";
+  const segActive = isDark
+    ? "bg-white/15 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_2px_8px_rgba(0,0,0,0.3)]"
+    : "bg-stone-900 text-white shadow-[0_2px_8px_rgba(28,25,20,0.25)]";
+  const segInactive = isDark
+    ? "text-stone-400 hover:text-white"
+    : "text-stone-500 hover:text-stone-900";
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => setTheme(getTheme()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
   const today = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -78,139 +55,142 @@ export function AppShell() {
 
       {/* Frosted Glass Header */}
       <header className="glass-header sticky top-0 z-30">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3 md:px-8">
+        <div className="mx-auto flex max-w-350 flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3 md:px-8">
+          {/* Brand */}
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-stone-900 to-stone-800 text-[14px] font-semibold text-amber-200 border border-amber-300/30 shadow-sm">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-stone-900 to-stone-800 text-[13px] font-bold tracking-wide text-amber-200 border border-amber-300/30 shadow-md">
               CMS
             </div>
             <div className="min-w-0">
-              <p className="font-serif text-[1.3rem] leading-none tracking-tight text-ink">
+              <p className="font-serif text-[1.35rem] leading-none tracking-tight text-ink">
                 CMS Studio
               </p>
-              <p className="mt-1 text-[11px] tracking-wide text-stone-500">
+              <p className="mt-1 text-[11px] font-medium tracking-wide text-stone-500">
                 {today}
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <Button
-              variant="outline"
-              className={`rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer ${
-                pathname === "/pages"
-                  ? "bg-stone-900 text-white border-stone-900 hover:bg-stone-800"
-                  : "glass-btn-outline"
-              }`}
-              onPress={() => navigate("/pages")}
+
+          {/* Center: segmented navigation */}
+          <nav
+            aria-label="Primary"
+            className={`order-3 flex w-full items-center justify-center gap-1 rounded-full p-1 sm:order-0 sm:w-auto ${
+              isDark ? "bg-white/5 border border-white/10" : "glass-pill"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => navigate("/pages")}
+              className={`cursor-pointer ${segBase} ${pathname === "/pages" || pathname.startsWith("/pages/") ? segActive : segInactive}`}
             >
               <Globe size={14} /> Pages
-            </Button>
-            <Button
-              variant="outline"
-              className={`rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer ${
-                pathname === "/sections" || pathname.startsWith("/sections/")
-                  ? "bg-stone-900 text-white border-stone-900 hover:bg-stone-800"
-                  : "glass-btn-outline"
-              }`}
-              onPress={() => navigate("/sections")}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/sections")}
+              className={`cursor-pointer ${segBase} ${pathname === "/sections" || pathname.startsWith("/sections/") ? segActive : segInactive}`}
             >
               <Layers size={14} /> Sections
-            </Button>
-            {/* <Button
-              variant="primary"
-              className="glass-btn-primary rounded-full px-4 py-1.5 text-xs font-medium cursor-pointer"
-              onPress={() => navigate("/sections/add")}
-            >
-              <Plus size={14} /> Add Section
-            </Button> */}
+            </button>
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <Button
               variant="outline"
-              className="glass-btn-outline rounded-full px-4 py-1.5 text-xs font-medium cursor-pointer"
+              className={`${isDark ? "border-white/15 bg-white/5 text-stone-200 hover:bg-white/10 hover:text-white" : "glass-btn-outline"} rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer`}
               onPress={() => window.open("https://cmslanding-six.vercel.app/", "_blank", "noopener,noreferrer")}
             >
-              <Globe size={14} /> View site
+              <Globe size={14} />
+              <span className="hidden sm:inline">View site</span>
             </Button>
-            <span
-              className="hidden h-6 w-px bg-stone-300/60 sm:block"
-              aria-hidden="true"
-            />
-            <div className="glass-pill flex min-w-0 items-center gap-2.5 rounded-full py-1 pr-3.5 pl-1">
+
+            <Button
+              isIconOnly
+              variant="outline"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Light mode" : "Dark mode"}
+              className={`${isDark ? "border-white/15 bg-white/5 text-amber-200 hover:bg-white/10" : "glass-btn-outline"} rounded-full h-8 w-8 min-w-8 cursor-pointer`}
+              onPress={() => setTheme(toggleTheme())}
+            >
+              {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+            </Button>
+
+            <span className="hidden h-6 w-px bg-stone-300/60 sm:block" aria-hidden="true" />
+
+            {/* User pill */}
+            <div className={`glass-pill flex min-w-0 items-center gap-2.5 rounded-full py-1 pr-3 pl-1 ${isDark ? "bg-white/5! border-white/10!" : ""}`}>
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-linear-to-br from-amber-100 to-amber-200 border border-amber-300/40 text-[11px] font-semibold text-amber-900">
                 {initials(user?.name)}
               </span>
-              <span className="hidden min-w-0 sm:block">
-                <span className="block truncate text-xs leading-tight font-medium text-stone-800">
+              <span className="hidden min-w-0 md:block">
+                <span className="block max-w-28 truncate text-xs leading-tight font-medium text-stone-800">
                   {user?.name}
                 </span>
-                <span className="block truncate text-[10px] leading-tight text-stone-500">
+                <span className="block max-w-28 truncate text-[10px] leading-tight text-stone-500">
                   {user?.email}
                 </span>
               </span>
             </div>
+
             <Button
+              isIconOnly
               variant="ghost"
-              className="rounded-full text-xs text-stone-600 hover:text-stone-950 hover:bg-white/60 transition-colors"
-              onPress={() => {
-                logout();
-                navigate("/login");
-              }}
+              aria-label="Sign out"
+              title="Sign out"
+              className={`group rounded-full h-8 w-8 min-w-8 cursor-pointer ${isDark ? "text-stone-400 hover:text-rose-300 hover:bg-rose-400/10" : "text-stone-600 hover:text-rose-600 hover:bg-rose-50/70"}`}
+              onPress={() => setLogoutOpen(true)}
             >
-              <LogOut size={14} /> Sign out
+              <LogOut size={15} className="transition-transform duration-300 group-hover:-translate-x-0.5" />
             </Button>
           </div>
         </div>
-
-        {/* Glass Tab Navigation Dock */}
-        {/* <div className="border-t border-white/40 px-3 py-1.5 md:px-7">
-          <nav
-            aria-label="Sections"
-            className="section-tabs flex items-center gap-1.5 overflow-x-auto py-0.5"
-          >
-            <NavLink
-              to="/pages"
-              className={`glass-nav-tab flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
-                pathname === "/pages"
-                  ? "glass-nav-tab-active"
-                  : "glass-nav-tab-inactive"
-              }`}
-            >
-              <Globe size={14} />
-              Pages
-            </NavLink>
-            <NavLink
-              to="/sections"
-              className={`glass-nav-tab flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
-                pathname === "/sections"
-                  ? "glass-nav-tab-active"
-                  : "glass-nav-tab-inactive"
-              }`}
-            >
-              <Layers size={14} />
-              Sections
-            </NavLink>
-            <span
-              className="h-4 w-px bg-stone-300/40 mx-1 shrink-0"
-              aria-hidden="true"
-            />
-            {nav.map((item) => {
-              const Icon = item.icon;
-              const active =
-                pathname === item.to || pathname.startsWith(`${item.to}/`);
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={`glass-nav-tab flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
-                    active ? "glass-nav-tab-active" : "glass-nav-tab-inactive"
-                  }`}
-                >
-                  <Icon size={14} />
-                  {item.label}
-                </NavLink>
-              );
-            })}
-          </nav>
-        </div> */}
       </header>
+
+      {/* Logout confirmation modal */}
+      <Modal isOpen={logoutOpen} onOpenChange={setLogoutOpen}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="glass-modal relative max-w-sm overflow-hidden p-0">
+              <div className={`h-1.5 w-full ${isDark ? "bg-linear-to-r from-rose-500/70 via-amber-400/60 to-rose-500/70" : "bg-linear-to-r from-rose-400 via-amber-300 to-rose-400"}`} />
+              <div className="p-6 sm:p-7">
+                <div className="flex flex-col items-center text-center">
+                  <span className={`grid h-14 w-14 place-items-center rounded-2xl border shadow-lg ${isDark ? "border-rose-300/20 bg-rose-400/10 text-rose-300" : "border-rose-200/70 bg-rose-50 text-rose-600"}`}>
+                    <LogOut size={22} className="animate-logout-icon" />
+                  </span>
+                  <Modal.Heading className="font-serif mt-4 text-2xl text-ink">
+                    Sign out?
+                  </Modal.Heading>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                    You&apos;ll need to sign in again to keep managing{" "}
+                    <span className="font-medium text-ink">{user?.name ? `${user.name.split(" ")[0]}'s ` : ""}CMS Studio</span>.
+                  </p>
+                </div>
+                <div className="mt-6 flex items-center justify-center gap-2.5">
+                  <Button
+                    slot="close"
+                    variant="ghost"
+                    className={`rounded-full px-5 py-2 text-xs font-medium cursor-pointer ${isDark ? "text-stone-300 hover:bg-white/10 hover:text-white" : "text-stone-600 hover:bg-white/70 hover:text-stone-900"}`}
+                  >
+                    Stay signed in
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="rounded-full px-5 py-2 text-xs font-semibold cursor-pointer bg-linear-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/25 hover:from-rose-600 hover:to-rose-700"
+                    onPress={() => {
+                      setLogoutOpen(false);
+                      logout();
+                      navigate("/login");
+                    }}
+                  >
+                    <LogOut size={14} /> Sign out
+                  </Button>
+                </div>
+              </div>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
 
       {/* Main Content Area */}
       <main className="relative px-4 py-6 md:px-8 md:py-8">

@@ -4,8 +4,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { OfficeProvider } from "@/office";
 import App from "@/App";
+import { initTheme } from "@/theme";
 import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
+
+initTheme();
 
 const queryClient = new QueryClient({
   defaultOptions: {
