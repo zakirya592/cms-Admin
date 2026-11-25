@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Chip, Modal } from "@heroui/react";
-import { ArrowUpRight, Building2, ChevronUp, ClipboardList, Clock, Eye, House, Mail, MapPin, Pencil, Phone, Plus, ShieldCheck, Trash2, TriangleAlert, User, Users } from "lucide-react";
+import { Button, Chip } from "@heroui/react";
+import { ArrowUpRight, Building2, ChevronUp, ClipboardList, Clock, House, Mail, MapPin, Pencil, Phone, Plus, ShieldCheck, Trash2, TriangleAlert, User, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import { DataTable } from "@/components/DataTable";
 import { AreaControl, ConfirmDialog, RichTextControl, TextControl } from "@/components/Fields";
@@ -222,23 +222,6 @@ function hasSectionPreview(section) {
   return Boolean(section?.key);
 }
 
-function previewHeading(section) {
-  if (section.key === "header") return "Header preview";
-  if (section.key === "hero") return "Hero preview";
-  if (section.key === "about") return "About preview";
-  if (section.key === "services") return "Services preview";
-  if (section.key === "projects") return "Projects preview";
-  if (section.key === "why-us") return "Why Us preview";
-  if (section.key === "process") return "Process preview";
-  if (section.key === "testimonials") return "Testimonials preview";
-  if (section.key === "cta") return "CTA preview";
-  if (section.key === "footer") return "Footer preview";
-  if (section.key === "contact") return "Contact preview";
-  if (isVisionSection(section)) return "Vision & Mission preview";
-  if (isGoalsSection(section)) return "Our Goals preview";
-  return `${section.name} preview`;
-}
-
 const previewImageClass = "w-auto self-start border-[3px] border-[#1c1914] object-cover";
 
 export function PreviewImage({ file, url, className = "" }) {
@@ -307,6 +290,25 @@ function CustomSectionDesign({ form, section }) {
           ))}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+export function PreviewFrame({ url = "northline.build", children, className = "" }) {
+  return (
+    <div className={`overflow-hidden rounded-2xl border border-stone-300/50 bg-white shadow-2xl shadow-stone-900/10 ${className}`}>
+      <div className="flex items-center gap-3 border-b border-stone-200/70 bg-stone-100/90 px-4 py-2.5">
+        <div className="flex shrink-0 gap-1.5" aria-hidden="true">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+        </div>
+        <div className="min-w-0 flex-1 truncate rounded-lg border border-stone-200/70 bg-white/90 px-3 py-1 text-center text-[11px] text-stone-500">
+          {url}
+        </div>
+        <span className="hidden w-10 shrink-0 sm:block" aria-hidden="true" />
+      </div>
+      <div className="max-h-[72vh] overflow-y-auto overscroll-contain">{children}</div>
     </div>
   );
 }
@@ -816,7 +818,6 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
   const isEdit = mode === "edit";
   const [form, setForm] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const skipLoad = isAdd;
   const sectionQuery = useLandingSection(sectionKey, { enabled: Boolean(sectionKey) && !skipLoad });
   const section = resolveSection(sectionKey, sectionQuery.data);
@@ -857,6 +858,7 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
       });
       if (section.custom) rememberItemFields(section.key, section.itemFields);
       toast.success(body?.message || `${section.name} saved`);
+      navigate("/sections");
       if (isAdd || isEdit) navigate(section.path);
     } catch (err) {
       toast.error(messageFromApi(err, "Could not save this section"));
@@ -896,7 +898,7 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
       setDeleteOpen(false);
       if (section.custom) {
         forgetItemFields(section.key);
-        navigate("/header", { replace: true });
+        navigate("/sections", { replace: true });
       }
     } catch (err) {
       toast.error(messageFromApi(err, "Could not delete this section"));
@@ -911,11 +913,6 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
         description={pageDescription}
         action={
           <div className="flex flex-wrap items-center gap-2.5">
-            {hasSectionPreview(section) && form ? (
-              <Button variant="outline" className="glass-btn-outline rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer" onPress={() => setPreviewOpen(true)}>
-                <Eye size={15} /> Preview
-              </Button>
-            ) : null}
             {form?.raw ? (
               <Chip size="sm" className={form.raw.isActive === false ? "glass-pill text-stone-600 bg-stone-200/50" : "glass-pill text-emerald-800 bg-emerald-100/60"}>
                 {form.raw.isActive === false ? "Hidden" : "Active"}
@@ -1048,30 +1045,6 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
           </div>
         </form>
       )}
-      {hasSectionPreview(section) && form ? (
-        <Modal isOpen={previewOpen} onOpenChange={setPreviewOpen}>
-          <Modal.Backdrop>
-            <Modal.Container>
-              <Modal.Dialog className="glass-modal w-[90vw] max-w-[90vw] p-4 sm:p-6">
-                <Modal.CloseTrigger />
-                <Modal.Header>
-                  <Modal.Heading className="font-serif text-2xl text-ink">{previewHeading(section)}</Modal.Heading>
-                </Modal.Header>
-                <Modal.Body>
-                  <div className="overflow-hidden rounded-xl border border-white/40 shadow-sm">
-                    <SectionPreview section={section} form={form} />
-                  </div>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button slot="close" variant="ghost" className="rounded-full hover:bg-white/60">
-                    Close
-                  </Button>
-                </Modal.Footer>
-              </Modal.Dialog>
-            </Modal.Container>
-          </Modal.Backdrop>
-        </Modal>
-      ) : null}
       <ConfirmDialog
         title={`Delete ${section.name}?`}
         body={`This removes the ${section.name.toLowerCase()} section from the landing page.`}

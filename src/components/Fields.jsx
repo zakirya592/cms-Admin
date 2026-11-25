@@ -55,7 +55,11 @@ export function TextControl({ label, value, onChange, type = "text", placeholder
   return (
     <TextField value={value} onChange={onChange} className="w-full">
       <Label className="text-xs font-medium text-stone-700">{label}</Label>
-      <Input type={type} placeholder={placeholder} />
+      <Input
+        type={type}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-stone-300/80 bg-white/70 px-3 py-2 text-sm text-ink placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 transition"
+      />
     </TextField>
   );
 }
@@ -70,7 +74,7 @@ function editorHtml(html) {
 
 export function RichTextControl({ label, value, onChange }) {
   return (
-    <div className="rich-text flex w-full flex-col gap-1.5 sm:col-span-2">
+    <div className="rich-text flex w-full flex-col gap-1.5 sm:col-span-2 my-7">
       <span className="text-xs font-medium text-stone-700">{label}</span>
       <ReactQuill theme="snow" value={value ?? ""} onChange={(html) => onChange(editorHtml(html))} modules={modules} formats={formats} />
     </div>
@@ -81,7 +85,11 @@ export function AreaControl({ label, value, onChange, placeholder }) {
   return (
     <TextField value={value} onChange={onChange} className="w-full sm:col-span-2">
       <Label className="text-xs font-medium text-stone-700">{label}</Label>
-      <TextArea placeholder={placeholder} rows={4} />
+      <TextArea
+        placeholder={placeholder}
+        rows={4}
+        className="w-full rounded-xl border border-stone-300/80 bg-white/70 px-3 py-2 text-sm text-ink placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400/60 focus:border-amber-400/60 transition"
+      />
     </TextField>
   );
 }

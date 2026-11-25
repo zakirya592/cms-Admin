@@ -287,7 +287,15 @@ export function findSection(sectionKey) {
 
 export function resolveSection(sectionKey, record) {
   const known = findSection(sectionKey);
-  if (known) return known;
+  if (known) {
+    // Known sections without itemFields can still have items stored on the record;
+    // derive the fields from the first item's keys so they render in the form.
+    if (!known.itemFields?.length && Array.isArray(record?.items) && record.items.length) {
+      const derived = normalizeItemFields(Object.keys(record.items[0] ?? {}));
+      if (derived?.length) return { ...known, itemFields: derived };
+    }
+    return known;
+  }
   if (!isSectionSlug(sectionKey)) return null;
   const stored = itemFieldsOnRecord(record) ?? rememberedItemFields(sectionKey);
   return genericSection(sectionKey, record?.sectionName, record?.order ?? 0, stored === null ? undefined : stored);

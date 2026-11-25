@@ -1,32 +1,10 @@
 import { useState } from "react";
 import { Button, Chip } from "@heroui/react";
 import {
-  BadgeCheck,
   Copy,
-  EyeOff,
-  HardHat,
-  HelpCircle,
-  Image,
-  Info,
   Layers,
-  ListOrdered,
   Loader2,
-  Megaphone,
-  PanelBottom,
-  PanelTop,
-  Pencil,
-  Phone,
   Plus,
-  Quote,
-  Star,
-  Trash2,
-  Users,
-  Wrench,
-  BarChart2,
-  Grid,
-  Tag,
-  Handshake,
-  EyeIcon,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { DataTable } from "@/components/DataTable";
@@ -34,6 +12,7 @@ import { ConfirmDialog } from "@/components/Fields";
 import { PageHeader } from "@/components/PageBits";
 import { SectionFormDialog, SECTION_ICONS } from "@/components/sections/SectionFormDialog";
 import { useAdminSections, useAdminSectionAction } from "@/landing/sectionQueries";
+import { useNavigate } from "react-router-dom";
 
 // ── Status chip colours ────────────────────────────────────────────────────
 const statusTones = {
@@ -56,6 +35,7 @@ function shownDate(value) {
 
 // ── Page ───────────────────────────────────────────────────────────────────
 export function SectionsPage() {
+  const navigate = useNavigate();
   const sectionsQuery = useAdminSections();
   const sectionAction = useAdminSectionAction();
 
@@ -69,13 +49,12 @@ export function SectionsPage() {
   const sections = Array.isArray(sectionsQuery.data) ? sectionsQuery.data : [];
 
   function onAdd() {
-    setActiveSection(null);
-    setEditorOpen(true);
+    navigate('/sections/add')
   }
 
   function onEdit(sec) {
-    setActiveSection(sec);
-    setEditorOpen(true);
+    const key = sec.sectionKey || sec.type || sec.name;
+    if (key) navigate(`/${String(key).toLowerCase()}`);
   }
 
   function onDeletePrompt(sec) {

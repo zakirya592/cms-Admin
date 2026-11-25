@@ -22,7 +22,7 @@ export function AuthLayout({ children }) {
         {/* Top Kicker */}
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-[11px] font-medium tracking-[0.25em] text-amber-200 backdrop-blur-md">
-            NORTHLINE CONSTRUCTION
+            CMS
           </div>
         </div>
 
@@ -73,7 +73,7 @@ export function AuthLayout({ children }) {
             <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-stone-900 to-stone-800 text-xs font-semibold text-amber-200 border border-amber-300/30">
               CMS
             </span>
-            <p className="text-[11px] font-medium tracking-[0.22em] text-amber-900 uppercase">NORTHLINE</p>
+            <p className="text-[11px] font-medium tracking-[0.22em] text-amber-900 uppercase">CMS</p>
           </div>
           {children}
         </motion.div>
