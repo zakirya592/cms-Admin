@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/PageBits";
 import { blankItem, itemIsEmpty } from "@/landing/payload";
 import { useAdminSections, useSaveAdminSection } from "@/landing/sectionQueries";
 import { PreviewImage } from "@/pages/LandingSectionPage";
-import { ITEM_FIELD_TYPES, fieldKindLabel, findSection, forgetItemFields, genericSection, isSectionSlug, itemFieldsByKeys, rememberItemFields, sectionSlug, serializeItemFields } from "@/landing/sections";
+import { ITEM_FIELD_TYPES, fieldKindLabel, findSection, forgetItemFields, genericSection, isSectionSlug, itemFieldsByKeys, landingSections, rememberItemFields, sectionSlug, serializeItemFields } from "@/landing/sections";
 
 const FIELD_ICONS = {
   title: Type,
@@ -85,11 +85,15 @@ export function AdminAddSectionPage() {
   const [orderTouched, setOrderTouched] = useState(false);
   const [picked, setPicked] = useState([]);
   const [content, setContent] = useState(null);
+  const [typeChoice, setTypeChoice] = useState("");
 
   const slug = sectionSlug(name);
-  const known = isSectionSlug(slug) ? findSection(slug) : null;
+  const autoSection = isSectionSlug(slug) ? findSection(slug) : null;
+  const autoType = autoSection ? autoSection.key : isSectionSlug(slug) ? "custom" : "";
+  const typeKey = typeChoice || autoType;
+  const known = typeKey && typeKey !== "custom" ? findSection(typeKey) : null;
   const pickedFields = allowedItemFields(itemFieldsByKeys(picked));
-  const section = known ?? (isSectionSlug(slug) ? genericSection(slug, name.trim() || slug, Number(order) || 0, pickedFields) : null);
+  const section = known ?? (typeKey === "custom" && isSectionSlug(slug) ? genericSection(slug, name.trim() || slug, Number(order) || 0, pickedFields) : null);
   const kind = known?.key ?? (section ? "custom" : "");
   const pickedKey = pickedFields.map((field) => field.key).join(",");
   const itemFields = pickedFields.length ? pickedFields : allowedItemFields(section?.itemFields ?? []);
@@ -223,6 +227,22 @@ export function AdminAddSectionPage() {
               onChange={setName}
               placeholder="FAQ"
             />
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-stone-700">Section type</label>
+              <select
+                value={typeKey}
+                onChange={(event) => setTypeChoice(event.target.value)}
+                className="glass-panel w-full rounded-xl border border-white/65 px-3 py-2 text-sm text-ink outline-none focus:border-amber-600 focus:bg-white/80 transition-colors"
+              >
+                {!typeKey ? <option value="">Pick a type…</option> : null}
+                {landingSections.map((entry) => (
+                  <option key={entry.key} value={entry.key}>
+                    {entry.name}
+                  </option>
+                ))}
+                <option value="custom">Custom section</option>
+              </select>
+            </div>
             <TextControl
               label="Order"
               type="number"
@@ -233,10 +253,10 @@ export function AdminAddSectionPage() {
               }}
             />
           </div>
-          {slug ? (
+          {section ? (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-900/20 bg-amber-50/70 px-3 py-1 text-xs font-medium text-amber-900">
-                <Layers size={12} /> Type: {slug}
+                <Layers size={12} /> Type: {section.key}
               </span>
               {known ? (
                 <span className="text-xs text-stone-500">
@@ -250,7 +270,7 @@ export function AdminAddSectionPage() {
             </div>
           ) : name.trim() ? (
             <p className="mt-4 text-sm text-stone-500">
-              Use letters or numbers in the section name.
+              Pick a section type to continue.
             </p>
           ) : null}
           {taken ? (

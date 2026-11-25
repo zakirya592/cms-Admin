@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Button, Chip } from "@heroui/react";
 import { ExternalLink, EyeOff, Globe, Layers, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/DataTable";
 import { ConfirmDialog } from "@/components/Fields";
 import { PageHeader } from "@/components/PageBits";
-import { PageFormDialog } from "@/components/pages/PageFormDialog";
 import { useAdminPages, usePageAction } from "@/landing/pageQueries";
 
 const statusTones = {
@@ -15,10 +15,9 @@ const statusTones = {
 };
 
 export function PagesPage() {
+  const navigate = useNavigate();
   const pagesQuery = useAdminPages();
   const pageAction = usePageAction();
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [activePage, setActivePage] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState(null);
   const [pendingActionId, setPendingActionId] = useState(null);
@@ -26,13 +25,12 @@ export function PagesPage() {
   const pages = Array.isArray(pagesQuery.data) ? pagesQuery.data : [];
 
   function onAdd() {
-    setActivePage(null);
-    setEditorOpen(true);
+    navigate("/pages/new");
   }
 
   function onEdit(page) {
-    setActivePage(page);
-    setEditorOpen(true);
+    const id = page._id || page.id;
+    if (id) navigate(`/pages/${id}/edit`);
   }
 
   function onDeletePrompt(page) {
@@ -246,13 +244,6 @@ export function PagesPage() {
           onDelete={onDeletePrompt}
         />
       )}
-
-      {/* Add / Update Page Dialog */}
-      <PageFormDialog
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        page={activePage}
-      />
 
       {/* Delete Confirmation */}
       <ConfirmDialog

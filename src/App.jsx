@@ -5,6 +5,7 @@ import { isSectionSlug } from "@/landing/sections";
 import { LandingSectionPage } from "@/pages/LandingSectionPage";
 import { AdminAddSectionPage } from "@/pages/AdminAddSectionPage";
 import { PagesPage } from "@/pages/PagesPage";
+import { PageFormPage } from "@/pages/PageFormPage";
 import { SectionsPage } from "@/pages/SectionsPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
@@ -38,6 +39,8 @@ export default function App() {
         >
           <Route index element={<Navigate to="/pages" replace />} />
           <Route path="pages" element={<PagesPage />} />
+          <Route path="pages/new" element={<PageFormPage />} />
+          <Route path="pages/:pageId/edit" element={<PageFormPage />} />
           <Route path="sections" element={<SectionsPage />} />
           <Route path="sections/add" element={<AdminAddSectionPage />} />
           <Route path="header/edit" element={<LandingSectionPage sectionKey="header" mode="edit" />} />
