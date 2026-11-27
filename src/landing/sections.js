@@ -285,16 +285,74 @@ export function findSection(sectionKey) {
   return landingSections.find((section) => section.key === sectionKey) ?? null;
 }
 
+function contentFromRecord(record) {
+  let content = record?.content;
+  if (typeof content === "string") {
+    try {
+      content = JSON.parse(content);
+    } catch {
+      content = null;
+    }
+  }
+  return content && typeof content === "object" ? content : null;
+}
+
+function labelFromKey(key) {
+  return String(key)
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export function resolveSection(sectionKey, record) {
   const known = findSection(sectionKey);
   if (known) {
-    // Known sections without itemFields can still have items stored on the record;
-    // derive the fields from the first item's keys so they render in the form.
-    if (!known.itemFields?.length && Array.isArray(record?.items) && record.items.length) {
-      const derived = normalizeItemFields(Object.keys(record.items[0] ?? {}));
-      if (derived?.length) return { ...known, itemFields: derived };
+    const content = contentFromRecord(record);
+    if (!content) return known;
+
+    const next = { ...known };
+
+    const scalarKeys = ["title", "subtitle", "description"].filter((key) =>
+      Object.prototype.hasOwnProperty.call(content, key),
+    );
+    if (scalarKeys.length) next.scalars = scalarKeys;
+
+    const button = content.button;
+    next.button = Boolean(
+      known.button ||
+        (button && typeof button === "object" && (button.text || button.link)),
+    );
+
+    if (Object.prototype.hasOwnProperty.call(content, "image") && content.image) {
+      next.file = { key: "image", label: "Image" };
     }
-    return known;
+
+    const settings = record?.settings && typeof record.settings === "object" ? record.settings : {};
+    const settingKeys = Object.keys(settings);
+    if (settingKeys.length) {
+      next.settings = settingKeys.map((key) => ({
+        key,
+        label: known.settings?.find((field) => field.key === key)?.label ?? labelFromKey(key),
+      }));
+    } else {
+      next.settings = [];
+    }
+
+    const items = Array.isArray(record?.items)
+      ? record.items
+      : Array.isArray(content.items)
+        ? content.items
+        : [];
+    if (items.length) {
+      const keys = new Set();
+      for (const item of items) {
+        for (const key of Object.keys(item ?? {})) keys.add(key);
+      }
+      const derived = normalizeItemFields([...keys]);
+      if (derived?.length) next.itemFields = derived;
+    }
+
+    return next;
   }
   if (!isSectionSlug(sectionKey)) return null;
   const stored = itemFieldsOnRecord(record) ?? rememberedItemFields(sectionKey);

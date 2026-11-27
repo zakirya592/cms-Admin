@@ -43,8 +43,8 @@ export default function App() {
           <Route path="pages/:pageId/edit" element={<PageFormPage />} />
           <Route path="sections" element={<SectionsPage />} />
           <Route path="sections/add" element={<AdminAddSectionPage />} />
-          <Route path="header/edit" element={<LandingSectionPage sectionKey="header" mode="edit" />} />
-          <Route path="projects/edit" element={<LandingSectionPage sectionKey="projects" mode="edit" />} />
+          {/* <Route path="header/edit" element={<LandingSectionPage sectionKey="header" mode="edit" />} /> */}
+          {/* <Route path="projects/edit" element={<LandingSectionPage sectionKey="projects" mode="edit" />} /> */}
           <Route path=":sectionKey" element={<SectionRoute />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

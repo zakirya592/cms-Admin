@@ -32,17 +32,35 @@ export function useAdminSections() {
   });
 }
 
+function toFormData(payload) {
+  if (payload instanceof FormData) return payload;
+  const body = new FormData();
+  for (const [key, value] of Object.entries(payload ?? {})) {
+    if (value === undefined || value === null) continue;
+    if (value instanceof File || value instanceof Blob) {
+      body.append(key, value);
+    } else if (typeof value === "object") {
+      body.append(key, JSON.stringify(value));
+    } else {
+      body.append(key, String(value));
+    }
+  }
+  return body;
+}
+
 /**
  * Add or update a section via PUT /api/admin/section.
  * Omit `id` to add; include `id` to update.
+ * The API expects multipart/form-data.
  */
 export function useSaveAdminSection() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload) => {
-      const body = { ...payload };
-      if (!body.id) delete body.id;
-      const response = await newRequest.put("/api/admin/section", body);
+      const body = toFormData(payload);
+      const response = await newRequest.put("/api/admin/section", body, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       return assertOk(response, "Could not save this section");
     },
     onSuccess: (_result, variables) => {

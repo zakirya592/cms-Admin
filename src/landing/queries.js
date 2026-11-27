@@ -69,8 +69,18 @@ async function fetchFullSection(record) {
 // Map an admin section record to the shape the landing form expects
 function adminToLanding(record) {
   if (!record) return null;
-  const content = record.content && typeof record.content === "object" ? record.content : {};
-  const items = Array.isArray(record.items) ? record.items : Array.isArray(content.items) ? content.items : [];
+  let content = record.content;
+  if (typeof content === "string") {
+    try {
+      content = JSON.parse(content);
+    } catch {
+      content = null;
+    }
+  }
+  if (!content || typeof content !== "object") content = {};
+  const recordItems = Array.isArray(record.items) ? record.items : null;
+  const contentItems = Array.isArray(content.items) ? content.items : null;
+  const items = recordItems?.length ? recordItems : contentItems ?? recordItems ?? [];
   return {
     ...record,
     sectionKey: record.sectionKey,

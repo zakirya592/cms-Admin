@@ -111,19 +111,12 @@ export function AdminAddSectionPage() {
   }, [kind]);
 
   useEffect(() => {
-    if (!kind) {
-      setPicked([]);
-      return;
-    }
-    if (kind === "custom") return;
-    const base = allowedItemFields(findSection(kind)?.itemFields ?? []);
-    setPicked(base.map((field) => field.key));
+    setPicked([]);
   }, [kind]);
 
   useEffect(() => {
     if (!kind) return;
-    const base = kind === "custom" ? [] : allowedItemFields(findSection(kind)?.itemFields ?? []);
-    const fields = pickedFields.length ? pickedFields : base;
+    const fields = pickedFields;
     const draft = { ...(findSection(kind) ?? genericSection(kind, "Section", 0, fields)), itemFields: fields };
     setContent((current) => {
       if (!current) return current;
@@ -151,16 +144,15 @@ export function AdminAddSectionPage() {
   }
 
   function buildPayload() {
-    const items = (content.items ?? [])
-      .filter((item) => !itemIsEmpty(itemSection, item))
-      .map((item) => {
-        const next = {};
-        for (const field of itemFields) {
-          if (field.type === "file") next[field.key] = item.imageUrl || "";
-          else next[field.key] = item[field.key] ?? "";
-        }
-        return next;
-      });
+    const rawItems = (content.items ?? []).filter((item) => !itemIsEmpty(itemSection, item));
+    const items = rawItems.map((item) => {
+      const next = {};
+      for (const field of itemFields) {
+        if (field.type === "file") next[field.key] = item.imageUrl || "";
+        else next[field.key] = item[field.key] ?? "";
+      }
+      return next;
+    });
 
     const payloadContent = {
       title: content.title ?? "",
@@ -170,18 +162,27 @@ export function AdminAddSectionPage() {
       button: { text: content.buttonText ?? "", link: content.buttonLink ?? "" },
     };
 
-    const payload = {
-      name: name.trim(),
-      type: section.key,
-      order: Number(order) || 0,
-      status: "active",
-      content: payloadContent,
-    };
-    if (items.length) payload.items = items;
+    const body = new FormData();
+    body.append("name", name.trim());
+    body.append("type", section.key);
+    body.append("order", String(Number(order) || 0));
+    body.append("status", "active");
+    body.append("content", JSON.stringify(payloadContent));
+    if (items.length) body.append("items", JSON.stringify(items));
     if (section.custom) {
-      payload.settings = { itemFields: serializeItemFields(section.itemFields) };
+      body.append("settings[itemFields]", serializeItemFields(section.itemFields));
     }
-    return payload;
+    if (content.file instanceof File && content.file.size > 0) {
+      body.append("content[image]", content.file, content.file.name);
+    }
+    rawItems.forEach((item, index) => {
+      for (const field of itemFields) {
+        if (field.type === "file" && item.imageFile instanceof File && item.imageFile.size > 0) {
+          body.append(`items[${index}][${field.key}]`, item.imageFile, item.imageFile.name);
+        }
+      }
+    });
+    return body;
   }
 
   async function onSubmit(event) {
@@ -287,80 +288,62 @@ export function AdminAddSectionPage() {
             hint="Headline, copy, button and image"
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              {(section.scalars ?? []).map((key) =>
-                key === "description" ? (
-                  <div key={key} className="sm:col-span-2">
-                    <RichTextControl
-                      label="Description"
-                      value={content.description}
-                      onChange={(description) =>
-                        setContent((current) => ({ ...current, description }))
-                      }
-                    />
-                  </div>
-                ) : (
-                  <TextControl
-                    key={key}
-                    label={key === "subtitle" ? "Subtitle" : "Title"}
-                    value={content[key]}
-                    onChange={(value) =>
-                      setContent((current) => ({ ...current, [key]: value }))
-                    }
-                  />
-                ),
-              )}
-              {section.button ? (
-                <>
-                  <TextControl
-                    label="Button text"
-                    value={content.buttonText}
-                    onChange={(buttonText) =>
-                      setContent((current) => ({ ...current, buttonText }))
-                    }
-                  />
-                  <TextControl
-                    label="Button link"
-                    value={content.buttonLink}
-                    onChange={(buttonLink) =>
-                      setContent((current) => ({ ...current, buttonLink }))
-                    }
-                  />
-                </>
-              ) : null}
-              {(section.settings ?? []).map((field) => (
-                <TextControl
-                  key={field.key}
-                  label={field.label}
-                  value={content.settings[field.key] ?? ""}
-                  onChange={(value) =>
+              <TextControl
+                label="Title"
+                value={content.title}
+                onChange={(title) =>
+                  setContent((current) => ({ ...current, title }))
+                }
+              />
+              <TextControl
+                label="Subtitle"
+                value={content.subtitle}
+                onChange={(subtitle) =>
+                  setContent((current) => ({ ...current, subtitle }))
+                }
+              />
+              <div className="sm:col-span-2">
+                <RichTextControl
+                  label="Description"
+                  value={content.description}
+                  onChange={(description) =>
+                    setContent((current) => ({ ...current, description }))
+                  }
+                />
+              </div>
+              <TextControl
+                label="Button text"
+                value={content.buttonText}
+                onChange={(buttonText) =>
+                  setContent((current) => ({ ...current, buttonText }))
+                }
+              />
+              <TextControl
+                label="Button link"
+                value={content.buttonLink}
+                onChange={(buttonLink) =>
+                  setContent((current) => ({ ...current, buttonLink }))
+                }
+              />
+              <label className="flex flex-col gap-2 text-sm sm:col-span-2">
+                <span>Image</span>
+                <input
+                  key={kind}
+                  type="file"
+                  accept="image/*"
+                  className="block w-full text-sm text-stone-600 file:mr-3 file:rounded-xl file:border-0 file:bg-sand file:px-3 file:py-2 file:text-sm file:text-ink"
+                  onChange={(event) =>
                     setContent((current) => ({
                       ...current,
-                      settings: { ...current.settings, [field.key]: value },
+                      file: event.target.files?.[0] ?? null,
                     }))
                   }
                 />
-              ))}
-              {section.file ? (
-                <label className="flex flex-col gap-2 text-sm sm:col-span-2">
-                  <span>{section.file.label}</span>
-                  <input
-                    key={kind}
-                    type="file"
-                    accept="image/*"
-                    className="block w-full text-sm text-stone-600 file:mr-3 file:rounded-xl file:border-0 file:bg-sand file:px-3 file:py-2 file:text-sm file:text-ink"
-                    onChange={(event) =>
-                      setContent((current) => ({
-                        ...current,
-                        file: event.target.files?.[0] ?? null,
-                      }))
-                    }
-                  />
-                  <PreviewImage file={content.file} className="h-28" />
-                  <span className="text-xs text-stone-500">
-                    {content.file ? content.file.name : "No image yet"}
-                  </span>
-                </label>
-              ) : null}
+                <PreviewImage file={content.file} className="h-28" />
+                <span className="text-xs text-stone-500">
+                  {content.file ? content.file.name : "No image yet"}
+                </span>
+              </label>
             </div>
           </StepCard>
         ) : null}

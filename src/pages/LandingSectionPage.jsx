@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Chip } from "@heroui/react";
-import { ArrowUpRight, Building2, ChevronUp, ClipboardList, Clock, House, Mail, MapPin, Pencil, Phone, Plus, ShieldCheck, Trash2, TriangleAlert, User, Users } from "lucide-react";
+import { ArrowUpRight, Building2, ChevronUp, ClipboardList, Clock, House, Mail, MapPin, Phone, Plus, ShieldCheck, Trash2, TriangleAlert, User, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import { DataTable } from "@/components/DataTable";
 import { AreaControl, ConfirmDialog, RichTextControl, TextControl } from "@/components/Fields";
@@ -27,13 +27,6 @@ function shown(value) {
     return text || "—";
   }
   return String(value);
-}
-
-function shownDate(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
 function plainText(value) {
@@ -749,52 +742,6 @@ function HeaderBoard({ form }) {
   );
 }
 
-function ProjectsBoard({ form }) {
-  const record = form.raw ?? {};
-  return (
-    <div className="flex flex-col gap-6">
-      <section className="glass-card rounded-2xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Detail label="Section key" value={record.sectionKey || "projects"} />
-          <Detail label="Section name" value={form.sectionName} />
-          <Detail label="Order" value={form.order} />
-          <Detail label="Title" value={form.title} />
-          <Detail label="Subtitle" value={form.subtitle} />
-          <Detail label="Description" value={form.description} />
-          <Detail label="Image" value={record.image} />
-          <Detail label="Button" value={form.buttonText ? `${form.buttonText} ${form.buttonLink}` : ""} />
-          <Detail label="Settings" value={record.settings} />
-          <Detail label="Created" value={shownDate(record.createdAt)} />
-          <Detail label="Updated" value={shownDate(record.updatedAt)} />
-          <Detail label="ID" value={record._id || record.id} />
-        </div>
-      </section>
-      <DataTable
-        label="Projects"
-        rows={form.items}
-        empty="No projects in this section yet."
-        columns={[
-          { header: "Title", rowHeader: true, cell: (row) => row.title || "—" },
-          { header: "Category", cell: (row) => row.category || "—" },
-          { header: "Description", cell: (row) => (plainText(row.description) ? <RichCopy html={row.description} className="max-w-sm text-sm" /> : "—") },
-          {
-            header: "Image",
-            cell: (row) =>
-              <ChosenImage file={row.imageFile} url={row.imageUrl} className="h-12 w-20 rounded-lg object-cover" />,
-          },
-          { header: "Link", cell: (row) => row.link || "—" },
-        ]}
-      />
-    </div>
-  );
-}
-
-function ChosenImage({ file, url, className }) {
-  const src = useLocalImage(file, url);
-  if (!src) return "—";
-  return <img src={src} alt="" className={className} />;
-}
-
 function FileField({ label, file, url, onChange }) {
   const src = useLocalImage(file, url);
   return (
@@ -865,7 +812,6 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
     }
   }
 
-  const hasAddPage = section.key === "header" || section.key === "projects";
   const pageTitle = isAdd ? `Add ${section.name}` : isEdit ? `Edit ${section.name}` : section.name;
   const pageDescription = isAdd
     ? section.key === "header"
@@ -923,11 +869,6 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
                 {form.raw.isActive === false ? "Show" : "Hide"}
               </Button>
             )}
-            {!isAdd && !isEdit && hasAddPage && form?.raw && (
-              <Button variant="outline" className="glass-btn-outline rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer" onPress={() => navigate(`${section.path}/edit`)}>
-                <Pencil size={15} /> Edit
-              </Button>
-            )}
             {!isAdd && !isEdit && form?.raw && (
               <Button variant="danger" className="rounded-full px-3.5 py-1.5 text-xs font-medium bg-rose-50/70 border border-rose-200/80 text-rose-800 hover:bg-rose-100/80 backdrop-blur-xs cursor-pointer" onPress={() => setDeleteOpen(true)}>
                 <Trash2 size={15} /> Delete
@@ -944,12 +885,7 @@ export function LandingSectionPage({ sectionKey, mode = "view" }) {
           <HeaderBoard form={form} />
         </div>
       )}
-      {form && !isAdd && !isEdit && section.key === "projects" && (
-        <div className="mb-8">
-          <ProjectsBoard form={form} />
-        </div>
-      )}
-      {form && (isAdd || isEdit || !hasAddPage) && (
+      {form && (
         <form className="flex flex-col gap-6" onSubmit={onSubmit}>
           <section className="glass-card rounded-2xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <h2 className="font-serif text-2xl text-ink">Section</h2>
